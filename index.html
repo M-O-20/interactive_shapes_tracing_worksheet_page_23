@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كراسة تتبع الأشكال الهندسية التفاعلية - صفحة 23 (Basic Shapes I)</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Cairo, Fredoka & Quicksand -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --paper-bg: #ffffff;
+            --page-border: #f97316;
+            --inner-border: #facc15;
+        }
+
+        body {
+            font-family: 'Cairo', 'Fredoka', 'Quicksand', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            background: #fffbeb;
+            min-height: 100vh;
+        }
+
+        /* Outer Double Frame matching PDF Worksheet Page */
+        .page-double-frame {
+            border: 6px solid #f97316;
+            border-radius: 28px;
+            padding: 6px;
+            background-color: #fff;
+            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.2);
+        }
+
+        .inner-golden-frame {
+            border: 3px solid #facc15;
+            border-radius: 22px;
+            background-color: #ffffff;
+            position: relative;
+        }
+
+        /* Title Lettering Color Accents */
+        .title-letter-1 { color: #ec4899; }
+        .title-letter-2 { color: #06b6d4; }
+        .title-letter-3 { color: #3b82f6; }
+        .title-letter-4 { color: #10b981; }
+        .title-letter-5 { color: #f97316; }
+        .title-letter-6 { color: #ef4444; }
+        .title-word-accent { color: #7c3aed; }
+
+        .pencil-cursor {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%232563eb"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 0 32, pointer;
+        }
+
+        .bounce-gentle {
+            animation: bounceGentle 2.5s infinite ease-in-out;
+        }
+
+        @keyframes bounceGentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        canvas {
+            touch-action: none;
+        }
+
+        /* Print formatting */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0 !important; }
+            .worksheet-container { box-shadow: none !important; border: none !important; width: 100% !important; }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800 antialiased overflow-x-hidden">
+
+    <!-- Top Interactive Toolbar -->
+    <header class="bg-white/95 backdrop-blur-md border-b-2 border-orange-200 sticky top-0 z-30 shadow-sm px-4 py-2.5 no-print">
+        <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            
+            <!-- Logo & Main Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-md text-xl bounce-gentle">
+                    📐
+                </div>
+                <div>
+                    <h1 class="text-lg font-black text-slate-800 leading-tight flex items-center gap-2">
+                        <span>كراسة تتبع الأشكال الهندسية</span>
+                        <span id="page-badge" class="text-xs bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full font-bold">صفحة 23</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 font-bold">تعلم رسم ورسم الأشكال الهندسية الأساسية للطفل</p>
+                </div>
+            </div>
+
+            <!-- Page Badge Indicator -->
+            <div class="hidden sm:flex items-center gap-2 bg-orange-50 px-3 py-1.5 rounded-2xl border border-orange-200 text-orange-800 font-bold text-xs">
+                <span>🔷 الأشكال الهندسية (BASIC SHAPES I)</span>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex items-center gap-2">
+                <!-- Stars counter -->
+                <div class="flex items-center gap-1.5 bg-amber-50 border-2 border-amber-300 rounded-2xl px-3 py-1 text-amber-800 font-black text-xs shadow-sm" dir="ltr">
+                    <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                    <span id="completed-count">0</span>/<span id="total-count">6</span>
+                </div>
+
+                <!-- Print PDF -->
+                <button id="btn-print" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-bold transition text-xs flex items-center gap-1.5" title="طباعة الورقة">
+                    <i class="fa-solid fa-print"></i>
+                    <span class="hidden sm:inline">طباعة</span>
+                </button>
+
+                <!-- Sound toggle -->
+                <button id="btn-sound" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-600 transition text-xs" title="كتم/تشغيل الصوت">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+
+                <!-- Hint button -->
+                <button id="btn-hint" class="w-8 h-8 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-600 flex items-center justify-center transition text-xs" title="توضيح طريقة الرسم (تلميح)">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </button>
+
+                <!-- Clear canvas -->
+                <button id="btn-clear" class="w-8 h-8 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center transition text-xs" title="مسح الكل">
+                    <i class="fa-solid fa-eraser"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interactive PDF Worksheet Area -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-3 md:p-6 flex flex-col items-center justify-center">
+
+        <!-- Outer Orange Double Border Worksheet Container -->
+        <div class="worksheet-container w-full page-double-frame">
+            
+            <!-- Inner Golden Border Paper Page -->
+            <div class="inner-golden-frame p-4 md:p-6 flex flex-col items-center">
+
+                <!-- Header Row: Star, Title, Cloud -->
+                <div class="w-full flex items-center justify-between mb-1 px-2">
+                    <!-- Cute Yellow Star -->
+                    <div class="text-3xl md:text-5xl bounce-gentle drop-shadow-sm select-none">
+                        ⭐
+                    </div>
+
+                    <!-- Page Title Dynamic Header -->
+                    <div class="text-center">
+                        <h1 id="worksheet-title" class="text-2xl md:text-4xl font-black tracking-wide font-['Fredoka'] select-none">
+                            <span class="title-letter-1">B</span><span class="title-letter-2">A</span><span class="title-letter-3">S</span><span class="title-letter-4">I</span><span class="title-letter-5">C</span> 
+                            <span class="title-word-accent">SHAPES I</span>
+                        </h1>
+                        <p id="worksheet-subtitle" class="text-slate-600 font-bold text-xs md:text-sm mt-0.5 tracking-tight">
+                            Trace the basic dotted geometric shapes carefully.
+                        </p>
+                    </div>
+
+                    <!-- Cute Cloud -->
+                    <div class="text-3xl md:text-5xl bounce-gentle drop-shadow-sm select-none" style="animation-delay: 0.5s;">
+                        ☁️
+                    </div>
+                </div>
+
+                <!-- Interactive Tracing Canvas Area for Shapes -->
+                <div class="relative w-full aspect-[3/4] max-h-[780px] my-2 overflow-hidden pencil-cursor rounded-2xl bg-gradient-to-b from-amber-50/30 to-white" id="canvas-wrapper">
+                    <canvas id="tracing-canvas" class="w-full h-full block"></canvas>
+                </div>
+
+                <!-- Footer Row: Page Number and Great Job Banner -->
+                <div class="w-full flex items-center justify-between mt-2 pt-2 border-t border-slate-100 px-2">
+                    <!-- Page Number Square Box -->
+                    <div id="footer-page-num" class="w-8 h-8 rounded-md border-2 border-slate-300 flex items-center justify-center font-bold text-slate-600 text-sm bg-white shadow-inner">
+                        23
+                    </div>
+
+                    <!-- "Great Job!" Banner -->
+                    <div class="flex items-center gap-2 text-amber-500 font-black text-sm md:text-lg">
+                        <span>⭐</span>
+                        <span class="text-purple-600 font-['Fredoka'] tracking-wider">Great Job!</span>
+                        <span>⭐</span>
+                    </div>
+
+                    <div class="w-8"></div> <!-- Spacer for symmetry -->
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Toolbar for Pens and Sizes -->
+        <div class="w-full max-w-2xl mt-4 flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-2xl border-2 border-amber-200 shadow-md no-print">
+            <!-- Pen Colors -->
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-600">لون القلم:</span>
+                <div class="flex items-center gap-1.5" id="color-palette">
+                    <button data-color="#2563eb" class="w-7 h-7 rounded-full bg-blue-600 border-2 border-white ring-2 ring-blue-600 shadow-sm transition hover:scale-110 color-btn active"></button>
+                    <button data-color="#dc2626" class="w-7 h-7 rounded-full bg-red-600 border-2 border-white shadow-sm transition hover:scale-110 color-btn"></button>
+                    <button data-color="#16a34a" class="w-7 h-7 rounded-full bg-green-600 border-2 border-white shadow-sm transition hover:scale-110 color-btn"></button>
+                    <button data-color="#9333ea" class="w-7 h-7 rounded-full bg-purple-600 border-2 border-white shadow-sm transition hover:scale-110 color-btn"></button>
+                    <button data-color="#ea580c" class="w-7 h-7 rounded-full bg-orange-600 border-2 border-white shadow-sm transition hover:scale-110 color-btn"></button>
+                    <button data-color="rainbow" class="w-7 h-7 rounded-full bg-gradient-to-r from-red-500 via-green-500 to-blue-500 border-2 border-white shadow-sm transition hover:scale-110 color-btn" title="قلم القوس قزح السحري"></button>
+                </div>
+            </div>
+
+            <!-- Brush Size -->
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-600">سُمْك القلم:</span>
+                <button data-size="8" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 border border-slate-300 hover:bg-slate-200 size-btn">رفيع</button>
+                <button data-size="14" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-500 text-white border border-amber-600 shadow-sm size-btn active">متوسط</button>
+                <button data-size="22" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 border border-slate-300 hover:bg-slate-200 size-btn">عريض</button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Page Completion Celebration Modal -->
+    <div id="modal-success" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden modal-backdrop">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full text-center border-4 border-amber-400 shadow-2xl transform transition-all scale-90 opacity-0" id="modal-box">
+            <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-3 bounce-gentle border-2 border-amber-300 shadow-inner">
+                🌟
+            </div>
+            <h3 class="text-2xl font-black text-slate-800 mb-1">أحسنت يا بطل! 🎉</h3>
+            <p id="modal-message" class="text-slate-600 font-bold text-sm mb-4">لقد أكملت رسم وتتبع جميع الأشكال الهندسية في الصفحة 23 بنجاح!</p>
+
+            <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 mb-5 flex items-center justify-around">
+                <div>
+                    <p class="text-xs text-slate-500 font-bold">النجوم المكتسبة</p>
+                    <div class="text-amber-400 text-xl flex gap-1 justify-center mt-0.5">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                </div>
+                <div class="border-r border-amber-200 h-8"></div>
+                <div>
+                    <p class="text-xs text-slate-500 font-bold">الدقة</p>
+                    <p class="text-emerald-600 font-black text-lg">100%</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-col gap-2">
+                <button id="btn-modal-retry" class="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-base shadow-md transition transform hover:scale-105 active:scale-95">
+                    إعادة اللعب 🔄
+                </button>
+                <button id="btn-modal-print" class="w-full py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition">
+                    طباعة الورقة 🖨
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio Synthesizer Class for Child-friendly Sound Effects
+        class SoundEffects {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playPop() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.08);
+
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.09);
+            }
+
+            playLineComplete() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
+
+                    gain.gain.setValueAtTime(0.25, this.ctx.currentTime + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.08 + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(this.ctx.currentTime + idx * 0.08);
+                    osc.stop(this.ctx.currentTime + idx * 0.08 + 0.26);
+                });
+            }
+
+            playSuccessFanfare() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const melody = [
+                    { freq: 523.25, duration: 0.15 },
+                    { freq: 659.25, duration: 0.15 },
+                    { freq: 783.99, duration: 0.15 },
+                    { freq: 1046.50, duration: 0.4 }
+                ];
+
+                let now = this.ctx.currentTime;
+                melody.forEach((note) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(note.freq, now);
+
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + note.duration);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + note.duration);
+                    now += note.duration + 0.03;
+                });
+            }
+        }
+
+        const soundFX = new SoundEffects();
+
+        // Standalone Data Configuration for Page 23 (BASIC SHAPES I)
+        const PAGE_23_DATA = {
+            pageNum: "23",
+            titleHtml: '<span class="title-letter-1">B</span><span class="title-letter-2">A</span><span class="title-letter-3">S</span><span class="title-letter-4">I</span><span class="title-letter-5">C</span> <span class="title-word-accent">SHAPES I</span>',
+            subtitle: "Trace the basic dotted geometric shapes carefully.",
+            badgeText: "صفحة 23",
+            shapes: [
+                { id: "circle", nameAr: "دائرة", nameEn: "CIRCLE", icon: "🔴", type: "circle" },
+                { id: "square", nameAr: "مربع", nameEn: "SQUARE", icon: "🟩", type: "square" },
+                { id: "triangle", nameAr: "مثلث", nameEn: "TRIANGLE", icon: "🔺", type: "triangle" },
+                { id: "rectangle", nameAr: "مستطيل", nameEn: "RECTANGLE", icon: "🚪", type: "rectangle" },
+                { id: "star", nameAr: "نجمة", nameEn: "STAR", icon: "⭐", type: "star" },
+                { id: "oval", nameAr: "بيضاوي", nameEn: "OVAL", icon: "🥚", type: "oval" }
+            ]
+        };
+
+        let activeColor = "#2563eb";
+        let brushSize = 14;
+
+        const canvas = document.getElementById('tracing-canvas');
+        const ctx = canvas.getContext('2d');
+        let canvasWidth = 600;
+        let canvasHeight = 780;
+
+        let shapeLevels = [];
+        let isDrawing = false;
+        let activeShapeIndex = null;
+        let hintAnimationId = null;
+        let hintProgress = 0;
+
+        function buildShapePoints(shapeConfig, bounds) {
+            const points = [];
+            const { x, y, w, h } = bounds;
+            const cx = x + w / 2;
+            const cy = y + h / 2;
+
+            if (shapeConfig.type === "circle") {
+                const radius = Math.min(w, h) * 0.38;
+                const steps = 60;
+                for (let i = 0; i <= steps; i++) {
+                    const angle = (i / steps) * Math.PI * 2 - Math.PI / 2;
+                    points.push({
+                        x: cx + Math.cos(angle) * radius,
+                        y: cy + Math.sin(angle) * radius
+                    });
+                }
+            } else if (shapeConfig.type === "square") {
+                const side = Math.min(w, h) * 0.7;
+                const half = side / 2;
+                const corners = [
+                    { x: cx - half, y: cy - half },
+                    { x: cx + half, y: cy - half },
+                    { x: cx + half, y: cy + half },
+                    { x: cx - half, y: cy + half },
+                    { x: cx - half, y: cy - half }
+                ];
+                interpolateCorners(corners, points, 15);
+            } else if (shapeConfig.type === "triangle") {
+                const side = Math.min(w, h) * 0.72;
+                const corners = [
+                    { x: cx, y: cy - side * 0.55 },
+                    { x: cx + side * 0.5, y: cy + side * 0.4 },
+                    { x: cx - side * 0.5, y: cy + side * 0.4 },
+                    { x: cx, y: cy - side * 0.55 }
+                ];
+                interpolateCorners(corners, points, 20);
+            } else if (shapeConfig.type === "rectangle") {
+                const rw = w * 0.75;
+                const rh = h * 0.5;
+                const corners = [
+                    { x: cx - rw / 2, y: cy - rh / 2 },
+                    { x: cx + rw / 2, y: cy - rh / 2 },
+                    { x: cx + rw / 2, y: cy + rh / 2 },
+                    { x: cx - rw / 2, y: cy + rh / 2 },
+                    { x: cx - rw / 2, y: cy - rh / 2 }
+                ];
+                interpolateCorners(corners, points, 15);
+            } else if (shapeConfig.type === "star") {
+                const outerR = Math.min(w, h) * 0.38;
+                const innerR = outerR * 0.45;
+                const corners = [];
+                for (let i = 0; i < 10; i++) {
+                    const r = i % 2 === 0 ? outerR : innerR;
+                    const angle = (i / 10) * Math.PI * 2 - Math.PI / 2;
+                    corners.push({
+                        x: cx + Math.cos(angle) * r,
+                        y: cy + Math.sin(angle) * r
+                    });
+                }
+                corners.push(corners[0]);
+                interpolateCorners(corners, points, 8);
+            } else if (shapeConfig.type === "oval") {
+                const rx = w * 0.38;
+                const ry = h * 0.28;
+                const steps = 60;
+                for (let i = 0; i <= steps; i++) {
+                    const angle = (i / steps) * Math.PI * 2 - Math.PI / 2;
+                    points.push({
+                        x: cx + Math.cos(angle) * rx,
+                        y: cy + Math.sin(angle) * ry
+                    });
+                }
+            }
+
+            return points;
+        }
+
+        function interpolateCorners(corners, outputPoints, stepsPerEdge) {
+            for (let i = 0; i < corners.length - 1; i++) {
+                const p1 = corners[i];
+                const p2 = corners[i + 1];
+                for (let s = 0; s < stepsPerEdge; s++) {
+                    const t = s / stepsPerEdge;
+                    outputPoints.push({
+                        x: p1.x + t * (p2.x - p1.x),
+                        y: p1.y + t * (p2.y - p1.y)
+                    });
+                }
+            }
+            outputPoints.push(corners[corners.length - 1]);
+        }
+
+        function setupCanvas() {
+            const wrapper = document.getElementById('canvas-wrapper');
+            const rect = wrapper.getBoundingClientRect();
+            
+            canvasWidth = rect.width;
+            canvasHeight = rect.height;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvasWidth * dpr;
+            canvas.height = canvasHeight * dpr;
+            ctx.scale(dpr, dpr);
+
+            // Fallback for browsers that do not natively support CanvasRenderingContext2D.roundRect
+            if (!ctx.roundRect) {
+                ctx.roundRect = function(x, y, w, h, r) {
+                    if (typeof r === 'number') r = [r, r, r, r];
+                    this.beginPath();
+                    this.moveTo(x + r[0], y);
+                    this.lineTo(x + w - r[1], y);
+                    this.quadraticCurveTo(x + w, y, x + w, y + r[1]);
+                    this.lineTo(x + w, y + h - r[2]);
+                    this.quadraticCurveTo(x + w, y + h, x + w - r[2], y + h);
+                    this.lineTo(x + r[3], y + h);
+                    this.quadraticCurveTo(x, y + h, x, y + h - r[3]);
+                    this.lineTo(x, y + r[0]);
+                    this.quadraticCurveTo(x, y, x + r[0], y);
+                    this.closePath();
+                };
+            }
+
+            initWorksheetShapes();
+            renderCanvas();
+        }
+
+        function initWorksheetShapes() {
+            const shapes = PAGE_23_DATA.shapes;
+            const cols = 2;
+            const rows = 3;
+            const cellW = canvasWidth / cols;
+            const cellH = canvasHeight / rows;
+
+            shapeLevels = shapes.map((shape, idx) => {
+                const c = idx % cols;
+                const r = Math.floor(idx / cols);
+                const bounds = {
+                    x: c * cellW + cellW * 0.05,
+                    y: r * cellH + cellH * 0.05,
+                    w: cellW * 0.9,
+                    h: cellH * 0.9
+                };
+
+                const points = buildShapePoints(shape, bounds);
+                return {
+                    config: shape,
+                    bounds: bounds,
+                    points: points,
+                    startPoint: points[0],
+                    userStroke: [],
+                    completed: false
+                };
+            });
+
+            document.getElementById('total-count').innerText = shapeLevels.length;
+            updateStarsCount();
+        }
+
+        function renderCanvas() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            shapeLevels.forEach((shapeLevel) => {
+                drawShapeCardBackground(shapeLevel);
+                drawShapeGuidePath(shapeLevel);
+                drawUserStroke(shapeLevel);
+                drawStartEndIndicators(shapeLevel);
+            });
+
+            if (hintAnimationId && hintProgress > 0) {
+                drawHintHand();
+            }
+        }
+
+        function drawShapeCardBackground(shapeLevel) {
+            ctx.save();
+            const { x, y, w, h } = shapeLevel.bounds;
+
+            // Card Frame
+            ctx.fillStyle = shapeLevel.completed ? "#f0fdf4" : "#ffffff";
+            ctx.strokeStyle = shapeLevel.completed ? "#86efac" : "#f1f5f9";
+            ctx.lineWidth = 2;
+            
+            // Rounded rectangle card box
+            const radius = 16;
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, radius);
+            ctx.fill();
+            ctx.stroke();
+
+            // Shape Header Label
+            ctx.fillStyle = shapeLevel.completed ? "#15803d" : "#475569";
+            ctx.font = "bold 14px 'Cairo', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            ctx.fillText(`${shapeLevel.config.nameAr} - ${shapeLevel.config.nameEn}`, x + w / 2, y + 10);
+
+            ctx.restore();
+        }
+
+        function drawShapeGuidePath(shapeLevel) {
+            if (!shapeLevel.points || shapeLevel.points.length < 2) return;
+
+            ctx.save();
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            ctx.beginPath();
+            ctx.moveTo(shapeLevel.points[0].x, shapeLevel.points[0].y);
+            for (let i = 1; i < shapeLevel.points.length; i++) {
+                ctx.lineTo(shapeLevel.points[i].x, shapeLevel.points[i].y);
+            }
+
+            ctx.strokeStyle = shapeLevel.completed ? "#22c55e" : "#64748b";
+            ctx.lineWidth = shapeLevel.completed ? brushSize + 2 : 3;
+            ctx.setLineDash(shapeLevel.completed ? [] : [6, 8]);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawUserStroke(shapeLevel) {
+            if (shapeLevel.userStroke.length < 2) return;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(shapeLevel.userStroke[0].x, shapeLevel.userStroke[0].y);
+
+            for (let i = 1; i < shapeLevel.userStroke.length - 1; i++) {
+                const xc = (shapeLevel.userStroke[i].x + shapeLevel.userStroke[i + 1].x) / 2;
+                const yc = (shapeLevel.userStroke[i].y + shapeLevel.userStroke[i + 1].y) / 2;
+                ctx.quadraticCurveTo(shapeLevel.userStroke[i].x, shapeLevel.userStroke[i].y, xc, yc);
+            }
+
+            if (shapeLevel.userStroke.length > 2) {
+                const last = shapeLevel.userStroke[shapeLevel.userStroke.length - 1];
+                ctx.lineTo(last.x, last.y);
+            }
+
+            if (activeColor === "rainbow") {
+                const grad = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
+                grad.addColorStop(0, "#ef4444");
+                grad.addColorStop(0.25, "#eab308");
+                grad.addColorStop(0.5, "#22c55e");
+                grad.addColorStop(0.75, "#3b82f6");
+                grad.addColorStop(1, "#a855f7");
+                ctx.strokeStyle = grad;
+            } else {
+                ctx.strokeStyle = shapeLevel.completed ? "#16a34a" : activeColor;
+            }
+
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawStartEndIndicators(shapeLevel) {
+            if (!shapeLevel.startPoint) return;
+
+            ctx.save();
+            const sp = shapeLevel.startPoint;
+
+            // Start Indicator Dot
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, shapeLevel.completed ? 7 : 10, 0, Math.PI * 2);
+            ctx.fillStyle = shapeLevel.completed ? "#22c55e" : "#10b981";
+            ctx.fill();
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = "#ffffff";
+            ctx.stroke();
+
+            if (shapeLevel.completed) {
+                // Completed Checkmark Badge
+                const { x, y, w } = shapeLevel.bounds;
+                ctx.fillStyle = "#22c55e";
+                ctx.font = "bold 18px sans-serif";
+                ctx.textAlign = "right";
+                ctx.textBaseline = "top";
+                ctx.fillText("✓", x + w - 12, y + 10);
+            }
+
+            ctx.restore();
+        }
+
+        function drawHintHand() {
+            const incompleteShape = shapeLevels.find(s => !s.completed) || shapeLevels[0];
+            if (!incompleteShape || !incompleteShape.points || incompleteShape.points.length === 0) return;
+
+            const pts = incompleteShape.points;
+            const idx = Math.min(Math.floor(hintProgress * (pts.length - 1)), pts.length - 1);
+            const pos = pts[idx];
+
+            if (pos) {
+                ctx.save();
+                ctx.font = "32px sans-serif";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.shadowColor = "rgba(249, 115, 22, 0.5)";
+                ctx.shadowBlur = 6;
+                ctx.fillText("👆", pos.x - 4, pos.y - 4);
+                ctx.restore();
+            }
+        }
+
+        function getCanvasPoint(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches && e.touches.length > 0 ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * (canvasWidth / rect.width),
+                y: (clientY - rect.top) * (canvasHeight / rect.height)
+            };
+        }
+
+        function distance(p1, p2) {
+            return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+        }
+
+        function handleStart(e) {
+            e.preventDefault();
+            soundFX.init();
+
+            const pt = getCanvasPoint(e);
+            let nearestIdx = null;
+            let minDist = 48;
+
+            shapeLevels.forEach((shapeLevel, idx) => {
+                if (!shapeLevel.completed && shapeLevel.startPoint) {
+                    const d = distance(pt, shapeLevel.startPoint);
+                    if (d < minDist) {
+                        minDist = d;
+                        nearestIdx = idx;
+                    }
+                }
+            });
+
+            if (nearestIdx !== null) {
+                isDrawing = true;
+                activeShapeIndex = nearestIdx;
+
+                const shapeLevel = shapeLevels[activeShapeIndex];
+                shapeLevel.userStroke = [shapeLevel.startPoint, pt];
+                soundFX.playPop();
+                renderCanvas();
+            }
+        }
+
+        function handleMove(e) {
+            if (!isDrawing || activeShapeIndex === null) return;
+            e.preventDefault();
+
+            const pt = getCanvasPoint(e);
+            const shapeLevel = shapeLevels[activeShapeIndex];
+
+            if (shapeLevel.userStroke) {
+                shapeLevel.userStroke.push(pt);
+
+                // Check distance to closing loop / shape completion
+                const strokeLen = shapeLevel.userStroke.length;
+                const distToStart = distance(pt, shapeLevel.startPoint);
+
+                if (strokeLen > 25 && distToStart < 28) {
+                    shapeLevel.completed = true;
+                    shapeLevel.userStroke.push(shapeLevel.startPoint);
+                    isDrawing = false;
+                    activeShapeIndex = null;
+
+                    soundFX.playLineComplete();
+                    updateStarsCount();
+                    checkLevelCompletion();
+                }
+            }
+
+            renderCanvas();
+        }
+
+        function handleEnd(e) {
+            if (!isDrawing) return;
+            isDrawing = false;
+
+            if (activeShapeIndex !== null) {
+                const shapeLevel = shapeLevels[activeShapeIndex];
+                if (!shapeLevel.completed) {
+                    shapeLevel.userStroke = [];
+                }
+            }
+            activeShapeIndex = null;
+            renderCanvas();
+        }
+
+        function updateStarsCount() {
+            const completedCount = shapeLevels.filter(s => s.completed).length;
+            document.getElementById('completed-count').innerText = completedCount;
+        }
+
+        function checkLevelCompletion() {
+            const allCompleted = shapeLevels.length > 0 && shapeLevels.every(s => s.completed);
+            if (allCompleted) {
+                setTimeout(() => {
+                    soundFX.playSuccessFanfare();
+                    if (typeof confetti === 'function') {
+                        confetti({
+                            particleCount: 120,
+                            spread: 80,
+                            origin: { y: 0.6 }
+                        });
+                    }
+                    showSuccessModal();
+                }, 300);
+            }
+        }
+
+        function showSuccessModal() {
+            const modal = document.getElementById('modal-success');
+            const box = document.getElementById('modal-box');
+            modal.classList.remove('hidden');
+
+            setTimeout(() => {
+                box.classList.remove('scale-90', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 50);
+        }
+
+        function hideSuccessModal() {
+            const modal = document.getElementById('modal-success');
+            const box = document.getElementById('modal-box');
+
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-90', 'opacity-0');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 250);
+        }
+
+        function triggerHintAnimation() {
+            if (hintAnimationId) cancelAnimationFrame(hintAnimationId);
+
+            const incompleteShape = shapeLevels.find(s => !s.completed) || shapeLevels[0];
+            if (!incompleteShape || !incompleteShape.points) return;
+
+            hintProgress = 0;
+
+            function animate() {
+                hintProgress += 0.015;
+                if (hintProgress > 1) hintProgress = 0;
+
+                renderCanvas();
+
+                hintAnimationId = requestAnimationFrame(animate);
+            }
+
+            animate();
+
+            setTimeout(() => {
+                if (hintAnimationId) {
+                    cancelAnimationFrame(hintAnimationId);
+                    hintAnimationId = null;
+                    renderCanvas();
+                }
+            }, 3800);
+        }
+
+        window.addEventListener('load', () => {
+            setupCanvas();
+            window.addEventListener('resize', setupCanvas);
+
+            // Canvas Drawing Listeners
+            canvas.addEventListener('mousedown', handleStart);
+            canvas.addEventListener('mousemove', handleMove);
+            window.addEventListener('mouseup', handleEnd);
+
+            canvas.addEventListener('touchstart', handleStart, { passive: false });
+            canvas.addEventListener('touchmove', handleMove, { passive: false });
+            window.addEventListener('touchend', handleEnd);
+
+            // Color Palette Selector
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('ring-2', 'ring-blue-600', 'active'));
+                    btn.classList.add('ring-2', 'ring-blue-600', 'active');
+                    activeColor = btn.dataset.color;
+                    soundFX.playPop();
+                });
+            });
+
+            // Brush Size Selector
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.size-btn').forEach(b => {
+                        b.classList.remove('bg-amber-500', 'text-white', 'shadow-sm', 'active');
+                        b.classList.add('bg-slate-100', 'text-slate-800');
+                    });
+                    btn.classList.remove('bg-slate-100', 'text-slate-800');
+                    btn.classList.add('bg-amber-500', 'text-white', 'shadow-sm', 'active');
+                    brushSize = parseInt(btn.dataset.size);
+                    soundFX.playPop();
+                });
+            });
+
+            // Sound Toggle
+            document.getElementById('btn-sound').addEventListener('click', function() {
+                soundFX.enabled = !soundFX.enabled;
+                this.innerHTML = soundFX.enabled 
+                    ? '<i class="fa-solid fa-volume-high"></i>' 
+                    : '<i class="fa-solid fa-volume-xmark text-rose-500"></i>';
+            });
+
+            // Clear Canvas Button
+            document.getElementById('btn-clear').addEventListener('click', () => {
+                soundFX.playPop();
+                shapeLevels.forEach(s => {
+                    s.userStroke = [];
+                    s.completed = false;
+                });
+                updateStarsCount();
+                renderCanvas();
+            });
+
+            // Hint Animation Button
+            document.getElementById('btn-hint').addEventListener('click', () => {
+                soundFX.playPop();
+                triggerHintAnimation();
+            });
+
+            // Printable PDF Export Button
+            document.getElementById('btn-print').addEventListener('click', () => {
+                window.print();
+            });
+
+            // Modal Buttons
+            document.getElementById('btn-modal-retry').addEventListener('click', () => {
+                hideSuccessModal();
+                document.getElementById('btn-clear').click();
+            });
+
+            const printBtn = document.getElementById('btn-modal-print');
+            if (printBtn) {
+                printBtn.addEventListener('click', () => {
+                    hideSuccessModal();
+                    window.print();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
